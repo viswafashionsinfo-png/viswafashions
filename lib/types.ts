@@ -1,4 +1,4 @@
-// Hand-written types that mirror supabase/schema.sql + add-columns.sql.
+// Hand-written types that mirror supabase/schema.sql + phase2-additions.sql.
 
 export interface Category {
   id: string;
@@ -12,8 +12,8 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  original_price: number | null; // optional — set higher than price for a discount badge
-  material_label: string | null; // optional — e.g. "Pure Kanjivaram Silk"
+  original_price: number | null;
+  material_label: string | null;
   image_url: string | null;
   category_id: string | null;
   badge: string | null;
