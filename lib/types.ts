@@ -54,6 +54,11 @@ export interface Database {
         Insert: OrderInsert;
         Update: Partial<OrderInsert>;
       };
+      newsletter_signups: {
+        Row: { id: string; email: string; created_at: string };
+        Insert: { email: string };
+        Update: { email?: string };
+      };
     };
   };
 }
