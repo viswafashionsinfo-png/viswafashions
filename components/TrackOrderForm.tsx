@@ -30,10 +30,10 @@ export default function TrackOrderForm() {
     setError(null);
     setOrders(null);
 
-    const { data, error } = await supabase.rpc('track_order', {
-      p_phone: phone.trim(),
-      p_email: email.trim(),
-    });
+    const { data, error } = await (supabase as any).rpc('track_order', {
+  p_phone: phone.trim(),
+  p_email: email.trim(),
+});
 
     setLoading(false);
     if (error) {

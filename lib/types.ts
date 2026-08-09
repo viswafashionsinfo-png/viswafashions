@@ -58,5 +58,17 @@ export interface Database {
         Update: { email?: string };
       };
     };
+    Functions: {
+      track_order: {
+        Args: { p_phone: string; p_email: string };
+        Returns: {
+          id: string;
+          product_name: string | null;
+          total_amount: number;
+          payment_status: string;
+          created_at: string;
+        }[];
+      };
+    };
   };
 }
