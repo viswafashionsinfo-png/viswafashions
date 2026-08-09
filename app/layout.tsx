@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
@@ -22,16 +24,11 @@ export const metadata: Metadata = {
   description: 'Premium sarees and ethnic wear for the modern Indian woman.',
 };
 
-// Layout is a server component so it can fetch categories once, server-side,
-// and hand them to the (client) Navbar for its dynamic links + mobile menu.
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { data: categories, error } = await supabase
+  const { data: categories } = await supabase
     .from('categories')
     .select('*')
     .order('display_order', { ascending: true });
-
-  console.log('CATEGORIES RESULT:', categories);
-  console.log('CATEGORIES ERROR:', error);
 
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
