@@ -64,7 +64,7 @@ export default function Hero() {
         <div className="relative">
           <div className="aspect-[4/5] w-full rounded-2xl overflow-hidden shadow-card">
             <img
-              src="PASTE_YOUR_HERO_IMAGE_URL_HERE"
+              src="https://ewmkgivhnjbzedbewuvc.supabase.co/storage/v1/object/public/viswafashionsinfo-png's%20Org/marron%20main.webp"
               alt="Model draped in a luxury handwoven silk saree"
               className="w-full h-full object-cover"
             />

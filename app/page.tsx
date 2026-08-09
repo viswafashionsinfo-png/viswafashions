@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { supabase } from '@/lib/supabase/client';
 import Hero from '@/components/Hero';
 import CategoryRow from '@/components/CategoryRow';
