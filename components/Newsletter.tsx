@@ -11,7 +11,7 @@ export default function Newsletter() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus('saving');
-    const { error } = await supabase.from('newsletter_signups').insert({ email });
+    const { error } = await supabase.from('newsletter_signups' as any).insert({ email } as any);
     setStatus(error ? 'error' : 'done');
   }
 
