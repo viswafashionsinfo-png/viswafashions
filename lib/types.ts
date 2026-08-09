@@ -1,5 +1,3 @@
-// Hand-written types that mirror supabase/schema.sql + phase2-additions.sql.
-
 export interface Category {
   id: string;
   name: string;
