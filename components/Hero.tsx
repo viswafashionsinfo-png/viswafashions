@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
+import HeroImage from '@/components/HeroImage';
 
 // Stats are hand-set copy, not database-driven — edit the numbers directly
 // here as your real figures change.
@@ -9,9 +10,11 @@ const STATS = [
   { value: '4.9★', label: 'Customer Rating' },
 ];
 
-// IMAGE: replace PASTE_YOUR_HERO_IMAGE_URL_HERE below with your real photo's
-// Supabase Storage URL before deploying.
-export default function Hero() {
+interface HeroProps {
+  imageUrl: string | null;
+}
+
+export default function Hero({ imageUrl }: HeroProps) {
   return (
     <section className="bg-brand-bg overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-10 md:gap-12 items-center py-12 md:py-16">
@@ -41,7 +44,7 @@ export default function Hero() {
               <ArrowRight size={16} />
             </Link>
             <Link
-              href="/?filter=new"
+              href="/collections?filter=new"
               className="text-sm font-semibold text-neutral-800 hover:text-brand-maroon transition-colors inline-flex items-center gap-1.5"
             >
               Shop New Arrivals
@@ -63,10 +66,9 @@ export default function Hero() {
 
         <div className="relative">
           <div className="aspect-[4/5] w-full rounded-2xl overflow-hidden shadow-card">
-            <img
-              src="https://ewmkgivhnjbzedbewuvc.supabase.co/storage/v1/object/public/viswafashionsinfo-png's%20Org/Teacher.webp"
+            <HeroImage
+              src={imageUrl}
               alt="Model draped in a luxury handwoven silk saree"
-              className="w-full h-full object-cover"
             />
           </div>
 

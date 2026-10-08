@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import type { Product } from '@/lib/types';
+import { useGuestStore } from '@/components/GuestStoreProvider';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const [liked, setLiked] = useState(false);
+  const { isWishlisted, toggleWishlist } = useGuestStore();
+  const liked = isWishlisted(product.id);
+  const productHref = `/products/${product.slug}`;
 
   const hasDiscount =
     product.original_price != null && product.original_price > product.price;
@@ -21,15 +23,17 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="w-56 sm:w-64 shrink-0 snap-start bg-white rounded-xl shadow-card overflow-hidden flex flex-col">
       <div className="relative h-80 bg-neutral-100">
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm">
-            No image
-          </div>
-        )}
+        <Link href={productHref} className="block w-full h-full" aria-label={product.name}>
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm">
+              No image
+            </div>
+          )}
+        </Link>
 
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
           {product.badge && (
             <span className="bg-brand-maroon text-white text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-full w-fit">
               {product.badge}
@@ -43,14 +47,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {!product.in_stock && (
-          <span className="absolute top-3 right-12 bg-neutral-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+          <span className="absolute top-3 right-12 bg-neutral-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none">
             Sold Out
           </span>
         )}
 
         <button
-          onClick={() => setLiked((v) => !v)}
+          onClick={() => toggleWishlist(product.id)}
           aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={liked}
           className="absolute top-3 right-3 bg-white/90 rounded-full p-1.5 shadow-sm"
         >
           <Heart size={18} className={liked ? 'fill-brand-maroon text-brand-maroon' : 'text-neutral-500'} />
@@ -63,7 +68,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.material_label}
           </p>
         )}
-        <h3 className="font-serif text-base text-neutral-900 line-clamp-1">{product.name}</h3>
+        <h3 className="font-serif text-base text-neutral-900 line-clamp-1">
+          <Link href={productHref} className="hover:text-brand-maroon transition-colors">
+            {product.name}
+          </Link>
+        </h3>
 
         <p className="flex items-baseline gap-2">
           <span className="text-brand-maroon font-semibold">
@@ -79,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-auto pt-3">
           {product.in_stock ? (
             <Link
-              href={`/checkout?productId=${product.id}`}
+              href={productHref}
               className="block w-full text-center bg-brand-maroon text-white text-sm font-medium py-2.5 rounded-lg hover:bg-brand-maroonDark transition-colors"
             >
               Buy Now

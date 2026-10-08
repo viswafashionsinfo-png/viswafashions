@@ -19,4 +19,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 //    categories/products, insert-only on orders)
 //  - this app has no login/session state to isolate between users
 // This client works in both Server Components and Client Components.
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Next.js caches server-side fetch() responses on disk, which would keep
+// serving old rows after the catalog changes. Always read live data.
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+  },
+});

@@ -20,7 +20,7 @@ export default function CategoryRow({ categories }: CategoryRowProps) {
 
       <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2 justify-start sm:justify-center">
         {categories.map((cat) => (
-          <Link key={cat.id} href={`/?category=${cat.id}#new-collections`} className="flex flex-col items-center gap-3 shrink-0 group">
+          <Link key={cat.id} href={`/collections/${cat.slug}`} className="flex flex-col items-center gap-3 shrink-0 group">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-1 ring-neutral-200 group-hover:ring-brand-maroon overflow-hidden bg-neutral-50 transition-all p-1">
               <div className="w-full h-full rounded-full overflow-hidden">
                 {cat.image_url ? (

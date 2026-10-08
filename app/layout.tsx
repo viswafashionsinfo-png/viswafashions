@@ -3,10 +3,11 @@ export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
-import { supabase } from '@/lib/supabase/client';
+import { getActiveCategories } from '@/lib/catalog';
 import TopBar from '@/components/TopBar';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import GuestStoreProvider from '@/components/GuestStoreProvider';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -25,18 +26,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('display_order', { ascending: true });
+  const categories = await getActiveCategories();
 
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="font-sans">
-        <TopBar />
-        <Navbar categories={categories ?? []} />
-        {children}
-        <Footer />
+        <GuestStoreProvider>
+          <TopBar />
+          <Navbar categories={categories} />
+          {children}
+          <Footer />
+        </GuestStoreProvider>
       </body>
     </html>
   );

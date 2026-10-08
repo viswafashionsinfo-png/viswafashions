@@ -1,8 +1,10 @@
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   image_url: string | null;
   display_order: number;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -18,6 +20,32 @@ export interface Product {
   in_stock: boolean;
   display_order: number;
   created_at: string;
+  slug: string;
+  description: string | null;
+  fabric: string | null;
+  weave: string | null;
+  color: string | null;
+  occasion: string | null;
+  saree_length: string | null;
+  blouse_length: string | null;
+  care_instructions: string | null;
+}
+
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  image_url: string;
+  display_order: number;
+  is_primary: boolean;
+  created_at: string;
+}
+
+export interface SiteSetting {
+  id: string;
+  key: string;
+  value: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface OrderInsert {
@@ -30,6 +58,7 @@ export interface OrderInsert {
   state: string;
   complete_address: string;
   product_id: string;
+  quantity: number;
   total_amount: number;
   payment_status: string;
 }
@@ -47,6 +76,11 @@ export interface Database {
         Insert: Partial<Product>;
         Update: Partial<Product>;
       };
+      product_images: {
+        Row: ProductImage;
+        Insert: Partial<ProductImage> & { product_id: string; image_url: string };
+        Update: Partial<ProductImage>;
+      };
       orders: {
         Row: OrderInsert & { id: string; created_at: string };
         Insert: OrderInsert;
@@ -56,6 +90,11 @@ export interface Database {
         Row: { id: string; email: string; created_at: string };
         Insert: { email: string };
         Update: { email?: string };
+      };
+      site_settings: {
+        Row: SiteSetting;
+        Insert: Partial<SiteSetting> & { key: string };
+        Update: Partial<SiteSetting>;
       };
     };
     Functions: {

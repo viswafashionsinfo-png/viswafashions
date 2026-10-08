@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { lookupPincode } from '@/lib/pincode';
+import { useGuestStore } from '@/components/GuestStoreProvider';
 import type { Product } from '@/lib/types';
 
 interface CheckoutFormProps {
   product: Product;
+  quantity: number;
 }
 
 const GST_RATE = 0.05; // 5% total: 2.5% CGST + 2.5% SGST
@@ -37,23 +39,25 @@ const initialForm: FormState = {
   completeAddress: '',
 };
 
-export default function CheckoutForm({ product }: CheckoutFormProps) {
+export default function CheckoutForm({ product, quantity }: CheckoutFormProps) {
   const router = useRouter();
+  const { removeFromBag } = useGuestStore();
   const [form, setForm] = useState<FormState>(initialForm);
   const [pincodeStatus, setPincodeStatus] = useState<'idle' | 'checking' | 'found' | 'not-found'>('idle');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { cgst, sgst, total } = useMemo(() => {
-    const subtotal = product.price;
-    const cgstAmount = subtotal * CGST_RATE;
-    const sgstAmount = subtotal * SGST_RATE;
+  const { subtotal, cgst, sgst, total } = useMemo(() => {
+    const subtotalAmount = product.price * quantity;
+    const cgstAmount = subtotalAmount * CGST_RATE;
+    const sgstAmount = subtotalAmount * SGST_RATE;
     return {
+      subtotal: subtotalAmount,
       cgst: cgstAmount,
       sgst: sgstAmount,
-      total: subtotal + cgstAmount + sgstAmount,
+      total: subtotalAmount + cgstAmount + sgstAmount,
     };
-  }, [product.price]);
+  }, [product.price, quantity]);
 
   function handleChange<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -90,11 +94,14 @@ export default function CheckoutForm({ product }: CheckoutFormProps) {
   state: form.state,
   complete_address: form.completeAddress,
   product_id: product.id,
+  quantity,
   total_amount: Number(total.toFixed(2)),
   payment_status: 'pending',
 }] as any); // <--- Add this [ ] around the object and the 'as any'
 
       if (error) throw error;
+
+      removeFromBag(product.id);
 
       // Mock Razorpay integration — replace this block with a real Razorpay
       // checkout.js call once you have API keys. On success there, update the
@@ -241,13 +248,14 @@ export default function CheckoutForm({ product }: CheckoutFormProps) {
               <p className="text-brand-maroon font-semibold mt-1">
                 ₹{product.price.toLocaleString('en-IN')}
               </p>
+              <p className="text-sm text-neutral-500 mt-1">Qty: {quantity}</p>
             </div>
           </div>
 
           <div className="mt-6 space-y-2 text-sm border-t border-neutral-100 pt-4">
             <div className="flex justify-between text-neutral-600">
               <span>Subtotal</span>
-              <span>₹{product.price.toFixed(2)}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-neutral-600">
               <span>CGST (2.5%)</span>

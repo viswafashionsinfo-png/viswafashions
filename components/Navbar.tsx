@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, Heart, Package } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, X, Search, Heart, Package, ChevronDown, ShoppingBag } from 'lucide-react';
 import type { Category } from '@/lib/types';
+import { useGuestStore } from '@/components/GuestStoreProvider';
 
 interface NavbarProps {
   categories: Category[];
@@ -11,13 +13,52 @@ interface NavbarProps {
 
 const STATIC_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'Collections', href: '/#categories' },
-  { label: 'New Arrivals', href: '/?filter=new' },
-  { label: 'Best Sellers', href: '/#best-sellers' },
+  { label: 'Collections', href: '/collections' },
+  { label: 'New Arrivals', href: '/collections?filter=new' },
+  { label: 'Best Sellers', href: '/collections?filter=best' },
 ];
+
+// How many categories (in display_order) sit directly in the desktop bar
+// before the rest move under "More". Two tiers because the bar is narrower
+// at `lg` than at `xl`; the classes below must stay in sync with these.
+const INLINE_CATEGORIES_LG = 2;
+const INLINE_CATEGORIES_XL = 4;
 
 export default function Navbar({ categories }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const { bagCount } = useGuestStore();
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (!moreRef.current?.contains(e.target as Node)) setMoreOpen(false);
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMoreOpen(false);
+    }
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [moreOpen]);
+
+  const moreCategories = categories.slice(INLINE_CATEGORIES_LG);
+  const moreButtonClass =
+    categories.length > INLINE_CATEGORIES_XL
+      ? 'relative'
+      : categories.length > INLINE_CATEGORIES_LG
+        ? 'relative xl:hidden'
+        : 'hidden';
 
   return (
     <header className="sticky top-0 z-50 bg-brand-dark text-white shadow-md">
@@ -31,21 +72,52 @@ export default function Navbar({ categories }: NavbarProps) {
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-medium whitespace-nowrap">
           {STATIC_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-brand-maroon transition-colors">
               {link.label}
             </Link>
           ))}
-          {categories.map((cat) => (
+          {categories.map((cat, i) => (
             <Link
               key={cat.id}
-              href={`/?category=${cat.id}#new-collections`}
-              className="hover:text-brand-maroon transition-colors"
+              href={`/collections/${cat.slug}`}
+              className={`hover:text-brand-maroon transition-colors ${
+                i >= INLINE_CATEGORIES_XL ? 'hidden' : i >= INLINE_CATEGORIES_LG ? 'hidden xl:inline' : ''
+              }`}
             >
               {cat.name}
             </Link>
           ))}
+
+          <div ref={moreRef} className={moreButtonClass}>
+            <button
+              type="button"
+              onClick={() => setMoreOpen((v) => !v)}
+              aria-haspopup="true"
+              aria-expanded={moreOpen}
+              className="flex items-center gap-1 hover:text-brand-maroon transition-colors"
+            >
+              More
+              <ChevronDown size={14} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {moreOpen && (
+              <div className="absolute right-0 top-full mt-4 min-w-[12rem] bg-brand-dark border border-white/10 rounded-lg shadow-md py-2">
+                {moreCategories.map((cat, i) => (
+                  <Link
+                    key={cat.id}
+                    href={`/collections/${cat.slug}`}
+                    onClick={() => setMoreOpen(false)}
+                    className={`block px-4 py-2 hover:text-brand-maroon hover:bg-white/5 transition-colors ${
+                      i + INLINE_CATEGORIES_LG < INLINE_CATEGORIES_XL ? 'xl:hidden' : ''
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -55,6 +127,18 @@ export default function Navbar({ categories }: NavbarProps) {
           <button aria-label="Wishlist" className="hidden sm:flex hover:text-brand-maroon transition-colors">
             <Heart size={18} />
           </button>
+          <Link
+            href="/bag"
+            aria-label={bagCount > 0 ? `Shopping bag, ${bagCount} items` : 'Shopping bag'}
+            className="relative flex hover:text-brand-maroon transition-colors"
+          >
+            <ShoppingBag size={18} />
+            {bagCount > 0 && (
+              <span className="absolute -top-2 -right-2.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-brand-maroon text-white text-[10px] font-semibold leading-[1.1rem] text-center">
+                {bagCount}
+              </span>
+            )}
+          </Link>
 
           <Link
             href="/track"
@@ -76,7 +160,7 @@ export default function Navbar({ categories }: NavbarProps) {
       </div>
 
       {menuOpen && (
-        <nav className="lg:hidden border-t border-white/10 px-4 py-3 flex flex-col gap-3 text-sm font-medium bg-brand-dark">
+        <nav className="lg:hidden border-t border-white/10 px-4 py-3 flex flex-col gap-3 text-sm font-medium bg-brand-dark max-h-[calc(100vh-7rem)] overflow-y-auto">
           {STATIC_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -90,7 +174,7 @@ export default function Navbar({ categories }: NavbarProps) {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`/?category=${cat.id}#new-collections`}
+              href={`/collections/${cat.slug}`}
               onClick={() => setMenuOpen(false)}
               className="py-1 hover:text-brand-maroon transition-colors"
             >

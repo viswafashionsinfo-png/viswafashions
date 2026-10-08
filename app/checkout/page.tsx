@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import CheckoutForm from '@/components/CheckoutForm';
+import { clampQuantity } from '@/lib/pricing';
+import type { Product } from '@/lib/types';
 
 interface CheckoutPageProps {
-  searchParams: { productId?: string };
+  searchParams: { productId?: string; qty?: string };
 }
 
 // The "global state" for the selected product is just the URL
@@ -13,6 +15,7 @@ interface CheckoutPageProps {
 // and hand it down as a prop to the client CheckoutForm.
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const { productId } = searchParams;
+  const quantity = clampQuantity(Number(searchParams.qty ?? 1));
 
   if (!productId) {
     notFound();
@@ -31,7 +34,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
       <h1 className="font-serif text-3xl md:text-4xl text-neutral-900 mb-8">Checkout</h1>
-      <CheckoutForm product={product} />
+      <CheckoutForm product={product as Product} quantity={quantity} />
     </main>
   );
 }

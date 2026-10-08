@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { supabase } from '@/lib/supabase/client';
+import { getActiveCategories } from '@/lib/catalog';
 import Hero from '@/components/Hero';
 import CategoryRow from '@/components/CategoryRow';
 import ProductCarousel from '@/components/ProductCarousel';
@@ -16,10 +17,16 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const categoryFilter = searchParams.category;
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('display_order', { ascending: true });
+  const categories = await getActiveCategories();
+
+  const { data: heroSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'hero_image_url')
+    .maybeSingle();
+
+  const heroImageUrl =
+    (heroSetting as { value: string | null } | null)?.value ?? null;
 
   let newArrivalsQuery = supabase
     .from('products')
@@ -47,7 +54,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main>
-      <Hero />
+      <Hero imageUrl={heroImageUrl} />
       <ProductCarousel
         id="new-collections"
         eyebrow="Freshly Woven"
@@ -55,7 +62,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         subtitle="The latest weaves to enter the Viswafashions atelier this season."
         products={(newArrivals as Product[]) ?? []}
       />
-      <CategoryRow categories={categories ?? []} />
+      <CategoryRow categories={categories} />
       <ProductCarousel
         id="best-sellers"
         eyebrow="Loved by Thousands"
